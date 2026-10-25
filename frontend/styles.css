@@ -1,0 +1,67 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: white;
+    color: black;
+    margin: 20px;
+}
+
+.header {
+    margin-bottom: 20px;
+    text-align: center; /* Center the title */
+}
+
+h1 {
+    color: darkblue;
+}
+
+/* We use a simple flex layout to put the panels side-by-side */
+.main-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px; 
+}
+
+.left-panel {
+    width: 400px;
+}
+
+.right-panel {
+    width: 400px;
+}
+
+/* Styling the form boxes */
+.form-box {
+    border: 1px solid black;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #eeeeee;
+}
+
+/* Styling the display lists */
+.list-box {
+    border: 1px solid darkblue;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #e6f2ff;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+input, textarea {
+    width: 90%;
+    padding: 5px;
+}
+
+button {
+    background-color: blue;
+    color: white;
+    padding: 10px;
+    border: 1px solid darkblue;
+    cursor: pointer;
+}

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TravelManager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="header">
+        <h1>TravelManager</h1>
+        <p>Plan your group trips</p>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- Left Side: Forms -->
+        <div class="left-panel">
+            <div class="form-box">
+                <h2>1. Add a New User</h2>
+                <form id="userForm">
+                    <label>User ID:</label><br>
+                    <input type="number" id="u_id" required><br><br>
+                    <label>Username:</label><br>
+                    <input type="text" id="u_name" required><br><br>
+                    <label>Email Address:</label><br>
+                    <input type="email" id="u_email" required><br><br>
+                    <label>Password:</label><br>
+                    <input type="password" id="u_pass" required><br><br>
+                    <button type="submit">Create User</button>
+                </form>
+            </div>
+
+            <div class="form-box">
+                <h2>2. Create a Travel Group</h2>
+                <form id="groupForm">
+                    <label>Group ID:</label><br>
+                    <input type="number" id="g_id" required><br><br>
+                    <label>Group Name:</label><br>
+                    <input type="text" id="g_name" required><br><br>
+                    <label>Description:</label><br>
+                    <textarea id="g_desc" rows="2"></textarea><br><br>
+                    <label>Creator User ID:</label><br>
+                    <input type="number" id="g_creator" required><br><br>
+                    <button type="submit">Create Group</button>
+                </form>
+            </div>
+
+            <div class="form-box">
+                <h2>3. Plan a Trip</h2>
+                <form id="tripForm">
+                    <label>Trip ID:</label><br>
+                    <input type="number" id="t_id" required><br><br>
+                    <label>Trip Title:</label><br>
+                    <input type="text" id="t_title" required><br><br>
+                    <label>Destination:</label><br>
+                    <input type="text" id="t_dest" required><br><br>
+                    <label>Start Date:</label><br>
+                    <input type="date" id="t_start" required><br><br>
+                    <label>End Date:</label><br>
+                    <input type="date" id="t_end" required><br><br>
+                    <label>Group ID:</label><br>
+                    <input type="number" id="t_group" required><br><br>
+                    <button type="submit">Create Trip</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side: Lists -->
+        <div class="right-panel">
+            <div class="list-box">
+                <h2>Users List</h2>
+                <ul id="usersList"><li>Loading...</li></ul>
+            </div>
+            
+            <div class="list-box">
+                <h2>Groups List</h2>
+                <ul id="groupsList"><li>Loading...</li></ul>
+            </div>
+
+            <div class="list-box" id="groupMembersBox" style="display:none; background-color: #ffffe6; border: 2px solid orange;">
+                <h2 id="groupMembersTitle">Group Members</h2>
+                <ul id="groupMembersList"></ul>
+                <h3>Add a Member</h3>
+                <form id="memberForm">
+                    <label>User:</label><br>
+                    <select id="memberUser" required></select><br><br>
+                    <button type="submit">Add Member</button>
+                </form>
+            </div>
+
+            <div class="list-box">
+                <h2>Trips List</h2>
+                <ul id="tripsList"><li>Loading...</li></ul>
+            </div>
+
+            <!-- INDIVIDUAL TRIP VIEW: This appears when you click 'View' on a Trip! -->
+            <div class="list-box" id="tripDetailsBox" style="display:none; background-color: #ffffe6; border: 2px solid orange;">
+                <h2 id="tripDetailsTitle">Trip Details</h2>
+                
+                <h3>Itinerary Events</h3>
+                <ul id="itinerariesList">
+                    <li>No events yet.</li>
+                </ul>
+
+                <hr style="margin: 15px 0; border: 1px dashed orange;">
+
+                <h3>Add Event to this Trip</h3>
+                <form id="itineraryForm">
+                    <!-- Hidden field to remember which trip we are adding to -->
+                    <input type="hidden" id="i_trip"> 
+                    
+                    <label>Event ID:</label><br>
+                    <input type="number" id="i_id" required><br><br>
+
+                    <label>Event Title:</label><br>
+                    <input type="text" id="i_title" required><br><br>
+                    
+                    <label>Start Date and Time:</label><br>
+                    Date: <input type="date" id="i_date" required><br><br>
+                    Hour: <input type="number" id="i_hour" min="0" max="23" placeholder="HH" style="width:50px" required>
+                    Minute: <input type="number" id="i_min" min="0" max="59" placeholder="MM" style="width:50px" required><br><br>
+                    
+                    <label>Location:</label><br>
+                    <input type="text" id="i_loc" required><br><br>
+                    
+                    <label>Budget ($):</label><br>
+                    <input type="number" step="0.01" id="i_cost" required><br><br>
+                    
+                    <button type="submit" style="background-color: orange; color: black; border: 1px solid darkorange;">Add Event</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedGroupId = null;
+
+        window.onload = function() {
+            loadUsers();
+            loadGroups();
+            loadTrips();
+        };
+
+        function loadUsers() {
+            fetch('/api/users').then(r => r.json()).then(data => {
+                const ul = document.getElementById('usersList'); ul.innerHTML = '';
+                const userSelect = document.getElementById('memberUser');
+                userSelect.innerHTML = '';
+                data.forEach(u => {
+                    const item = document.createElement('li');
+                    item.textContent = `ID: ${u.id} | ${u.username}`;
+                    ul.appendChild(item);
+                    const option = document.createElement('option');
+                    option.value = u.id;
+                    option.textContent = `${u.username} (ID: ${u.id})`;
+                    userSelect.appendChild(option);
+                });
+            });
+        }
+        function loadGroups() {
+            fetch('/api/groups').then(r => r.json()).then(data => {
+                const ul = document.getElementById('groupsList'); ul.innerHTML = '';
+                data.forEach(g => {
+                    const item = document.createElement('li');
+                    item.append(`ID: ${g.id} | ${g.name} `);
+                    const viewButton = document.createElement('button');
+                    viewButton.type = 'button';
+                    viewButton.textContent = 'View';
+                    viewButton.style.padding = '2px 5px';
+                    viewButton.style.fontSize = '12px';
+                    viewButton.addEventListener('click', () => viewGroup(g.id, g.name));
+                    item.appendChild(viewButton);
+                    ul.appendChild(item);
+                });
+            });
+        }
+        function viewGroup(groupId, groupName) {
+            selectedGroupId = groupId;
+            document.getElementById('groupMembersBox').style.display = 'block';
+            document.getElementById('groupMembersTitle').textContent = `Members of ${groupName}`;
+            loadGroupMembers();
+        }
+        function loadGroupMembers() {
+            const ul = document.getElementById('groupMembersList');
+            fetch(`/api/groups/${selectedGroupId}/members`).then(r => {
+                if (!r.ok) throw new Error('Could not load group members');
+                return r.json();
+            }).then(members => {
+                ul.innerHTML = '';
+                if (members.length === 0) {
+                    const item = document.createElement('li');
+                    item.textContent = 'No members yet.';
+                    ul.appendChild(item);
+                    return;
+                }
+                members.forEach(member => {
+                    const item = document.createElement('li');
+                    item.textContent = `ID: ${member.userId} | ${member.username} (${member.role})`;
+                    ul.appendChild(item);
+                });
+            }).catch(error => alert(error.message));
+        }
+        function loadTrips() {
+            fetch('/api/trips').then(r => r.json()).then(data => {
+                const ul = document.getElementById('tripsList'); ul.innerHTML = '';
+                data.forEach(t => {
+                    // Added a View button next to each trip
+                    ul.innerHTML += `<li>ID: ${t.id} | ${t.title} 
+                                     <button onclick="viewTrip(${t.id}, '${t.title}')" style="padding: 2px 5px; font-size: 12px;">View</button></li>`;
+                });
+            });
+        }
+
+        // This function opens the "Trip Details" box!
+        function viewTrip(tripId, tripTitle) {
+            document.getElementById('tripDetailsBox').style.display = 'block';
+            document.getElementById('tripDetailsTitle').innerText = "Details for: " + tripTitle;
+            document.getElementById('i_trip').value = tripId; // Set the hidden field
+
+            // Load itineraries specifically for this trip using the new Java API filter
+            fetch('/api/itineraries?trip_id=' + tripId).then(r => r.json()).then(data => {
+                const ul = document.getElementById('itinerariesList'); ul.innerHTML = '';
+                if(data.length === 0) { ul.innerHTML = '<li>No events yet.</li>'; }
+                data.forEach(i => {
+                    ul.innerHTML += `<li>${i.title} at ${i.location} (Cost: $${i.cost})</li>`;
+                });
+            });
+        }
+
+        document.getElementById('userForm').onsubmit = function(e) {
+            e.preventDefault(); 
+            let fd = new URLSearchParams();
+            fd.append("user_id", document.getElementById('u_id').value);
+            fd.append("username", document.getElementById('u_name').value);
+            fd.append("email", document.getElementById('u_email').value);
+            fd.append("password", document.getElementById('u_pass').value);
+            fetch('/api/users', { method: 'POST', body: fd }).then(() => { alert("new user added"); document.getElementById('userForm').reset(); loadUsers(); });
+        };
+
+        document.getElementById('groupForm').onsubmit = function(e) {
+            e.preventDefault(); 
+            let fd = new URLSearchParams();
+            fd.append("group_id", document.getElementById('g_id').value);
+            fd.append("groupName", document.getElementById('g_name').value);
+            fd.append("groupDesc", document.getElementById('g_desc').value);
+            fd.append("creatorId", document.getElementById('g_creator').value);
+            fetch('/api/groups', { method: 'POST', body: fd }).then(r => { if(r.ok) { alert("new group added"); document.getElementById('groupForm').reset(); loadGroups(); } else { r.text().then(err => alert("Failed: " + err)); }});
+        };
+
+        document.getElementById('memberForm').onsubmit = function(e) {
+            e.preventDefault();
+            if (selectedGroupId === null) return;
+            const fd = new URLSearchParams();
+            fd.append('user_id', document.getElementById('memberUser').value);
+            fetch(`/api/groups/${selectedGroupId}/members`, { method: 'POST', body: fd }).then(r => {
+                if (r.ok) {
+                    loadGroupMembers();
+                } else {
+                    r.text().then(err => alert('Failed: ' + err));
+                }
+            });
+        };
+
+        document.getElementById('tripForm').onsubmit = function(e) {
+            e.preventDefault(); 
+            let fd = new URLSearchParams();
+            fd.append("trip_id", document.getElementById('t_id').value);
+            fd.append("title", document.getElementById('t_title').value);
+            fd.append("destination", document.getElementById('t_dest').value);
+            fd.append("start_date", document.getElementById('t_start').value);
+            fd.append("end_date", document.getElementById('t_end').value);
+            fd.append("group_id", document.getElementById('t_group').value);
+            fetch('/api/trips', { method: 'POST', body: fd }).then(r => { if(r.ok) { alert("new trip added"); document.getElementById('tripForm').reset(); loadTrips(); } else { r.text().then(err => alert("Failed: " + err)); }});
+        };
+
+        document.getElementById('itineraryForm').onsubmit = function(e) {
+            e.preventDefault(); 
+            let tripId = document.getElementById('i_trip').value;
+            let tripTitle = document.getElementById('tripDetailsTitle').innerText.replace("Details for: ", "");
+
+            // Build the timestamp from date picker + hour/minute inputs
+            let date  = document.getElementById('i_date').value; // gives YYYY-MM-DD
+            let hour  = String(document.getElementById('i_hour').value).padStart(2,'0');
+            let min   = String(document.getElementById('i_min').value).padStart(2,'0');
+            let startTime = `${date} ${hour}:${min}:00`;
+
+            let fd = new URLSearchParams();
+            fd.append("itinerary_id", document.getElementById('i_id').value);
+            fd.append("title", document.getElementById('i_title').value);
+            fd.append("start_time", startTime);
+            fd.append("location", document.getElementById('i_loc').value);
+            fd.append("cost", document.getElementById('i_cost').value);
+            fd.append("trip_id", tripId);
+
+            fetch('/api/itineraries', { method: 'POST', body: fd }).then(r => { 
+                if(r.ok) { 
+                    alert("new itinerary added"); 
+                    document.getElementById('i_id').value = '';
+                    document.getElementById('i_title').value = '';
+                    document.getElementById('i_date').value = '';
+                    document.getElementById('i_hour').value = '';
+                    document.getElementById('i_min').value = '';
+                    document.getElementById('i_loc').value = '';
+                    document.getElementById('i_cost').value = '';
+                    
+                    viewTrip(tripId, tripTitle); // refresh the list of events instantly
+                } else { 
+                    r.text().then(err => alert("Failed: " + err)); 
+                }
+            });
+        };
+    </script>
+</body>
+</html>
