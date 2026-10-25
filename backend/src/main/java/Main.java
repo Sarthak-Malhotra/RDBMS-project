@@ -17,13 +17,13 @@ import io.javalin.http.staticfiles.Location;
 
 public class Main {
     public static void main(String[] args) {
-        String url = "jdbc:mysql://localhost:3306/project";
-        String username = "root";
-        String password = "root";
+        String dbUrl = "jdbc:mysql://localhost:3306/project";
+        String dbUsername = "root";
+        String dbPassword = "root";
 
         Connection connection;
         try {
-            connection = DriverManager.getConnection(url, username, password);
+            connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
             System.out.println("✅ Connected to Database!");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -42,6 +42,68 @@ public class Main {
 
         System.out.println("🚀 Web Server running at http://localhost:8080");
 
+        // --- PAGE ROUTES ---
+        app.get("/user", ctx -> {
+            Path userFile = Paths.get(resolvedFrontend, "user.html");
+            if (Files.exists(userFile)) {
+                ctx.contentType("text/html").result(Files.readString(userFile));
+            } else {
+                ctx.redirect("/user.html");
+            }
+        });
+
+        // --- AUTHENTICATION ---
+        app.post("/api/login", ctx -> {
+            String identifier = ctx.formParam("username");
+            if (identifier == null || identifier.trim().isEmpty()) {
+                identifier = ctx.formParam("email");
+            }
+            String loginPassword = ctx.formParam("password");
+
+            if (identifier == null || loginPassword == null || identifier.trim().isEmpty() || loginPassword.trim().isEmpty()) {
+                ctx.status(400).result("Username/Email and Password are required");
+                return;
+            }
+
+            String sql = "SELECT user_id, username, email FROM users WHERE (username = ? OR email = ?) AND password_hash = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, identifier.trim());
+                pstmt.setString(2, identifier.trim());
+                pstmt.setString(3, loginPassword);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("id", rs.getInt("user_id"));
+                        user.put("username", rs.getString("username"));
+                        user.put("email", rs.getString("email"));
+                        ctx.sessionAttribute("currentUser", user);
+                        ctx.json(user);
+                    } else {
+                        ctx.status(401).result("Invalid username/email or password");
+                    }
+                }
+            } catch (SQLException e) {
+                ctx.status(500).result("Database error: " + e.getMessage());
+            }
+        });
+
+        app.get("/api/me", ctx -> {
+            Map<String, Object> user = ctx.sessionAttribute("currentUser");
+            if (user != null) {
+                ctx.json(user);
+            } else {
+                ctx.status(401).result("Not authenticated");
+            }
+        });
+
+        app.post("/api/logout", ctx -> {
+            try {
+                ctx.req().getSession().invalidate();
+            } catch (Exception ignored) {
+            }
+            ctx.result("Logged out");
+        });
+
         // --- USERS ---
         app.get("/api/users", ctx -> {
             List<Map<String, Object>> list = new ArrayList<>();
@@ -51,8 +113,88 @@ public class Main {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", rs.getInt("user_id"));
                     map.put("username", rs.getString("username"));
+                    map.put("email", rs.getString("email"));
                     list.add(map);
                 }
+            }
+            ctx.json(list);
+        });
+
+        app.get("/api/users/{userId}/groups", ctx -> {
+            int userId;
+            try {
+                userId = Integer.parseInt(ctx.pathParam("userId"));
+            } catch (NumberFormatException e) {
+                ctx.status(400).result("Invalid user ID");
+                return;
+            }
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            String sql = "SELECT g.group_id, g.name, g.description, g.created_by, gm.role, gm.joined_at, u.username AS creator_username "
+                    + "FROM group_members gm "
+                    + "JOIN travel_groups g ON gm.group_id = g.group_id "
+                    + "LEFT JOIN users u ON g.created_by = u.user_id "
+                    + "WHERE gm.user_id = ? "
+                    + "ORDER BY gm.joined_at DESC";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("groupId", rs.getInt("group_id"));
+                        map.put("name", rs.getString("name"));
+                        map.put("description", rs.getString("description"));
+                        map.put("createdBy", rs.getInt("created_by"));
+                        map.put("creatorUsername", rs.getString("creator_username"));
+                        map.put("role", rs.getString("role"));
+                        map.put("joinedAt", rs.getString("joined_at"));
+                        list.add(map);
+                    }
+                }
+            } catch (SQLException e) {
+                ctx.status(500).result("Database error: " + e.getMessage());
+                return;
+            }
+            ctx.json(list);
+        });
+
+        app.get("/api/users/{userId}/trips", ctx -> {
+            int userId;
+            try {
+                userId = Integer.parseInt(ctx.pathParam("userId"));
+            } catch (NumberFormatException e) {
+                ctx.status(400).result("Invalid user ID");
+                return;
+            }
+
+            List<Map<String, Object>> list = new ArrayList<>();
+            String sql = "SELECT t.trip_id, t.title, t.destination, t.start_date, t.end_date, t.status, "
+                    + "g.group_id, g.name AS group_name, gm.role AS user_role "
+                    + "FROM trips t "
+                    + "JOIN travel_groups g ON t.group_id = g.group_id "
+                    + "JOIN group_members gm ON g.group_id = gm.group_id "
+                    + "WHERE gm.user_id = ? "
+                    + "ORDER BY t.start_date ASC";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("tripId", rs.getInt("trip_id"));
+                        map.put("title", rs.getString("title"));
+                        map.put("destination", rs.getString("destination"));
+                        map.put("startDate", rs.getString("start_date"));
+                        map.put("endDate", rs.getString("end_date"));
+                        map.put("status", rs.getString("status"));
+                        map.put("groupId", rs.getInt("group_id"));
+                        map.put("groupName", rs.getString("group_name"));
+                        map.put("userRole", rs.getString("user_role"));
+                        list.add(map);
+                    }
+                }
+            } catch (SQLException e) {
+                ctx.status(500).result("Database error: " + e.getMessage());
+                return;
             }
             ctx.json(list);
         });

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TravelManager - User Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --primary: #004085;
+            --primary-hover: #002752;
+            --accent: #28a745;
+            --bg-light: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #cce5ff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #002752;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            margin: 0;
+            font-size: 22px;
+            display: inline-block;
+        }
+
+        .navbar .nav-links a {
+            color: #b8daff;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+        }
+
+        .navbar .nav-links a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Login Card */
+        .auth-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 420px;
+            margin: 40px auto;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+        }
+
+        .auth-card h2 {
+            margin-top: 0;
+            color: #004085;
+            text-align: center;
+        }
+
+        .auth-card p {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        .btn-primary {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #003d80;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-view {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-view:hover {
+            background-color: #218838;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Dashboard View */
+        .user-header-bar {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-left: 5px solid #0056b3;
+        }
+
+        .user-info-area h2 {
+            margin: 0 0 5px 0;
+            color: #002752;
+        }
+
+        .user-badges {
+            display: flex;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .badge-id {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
+        .badge-email {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-role-creator {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .badge-role-member {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .badge-status {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 850px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-top: 4px solid #0056b3;
+        }
+
+        .section-box.trips-section {
+            border-top-color: #28a745;
+        }
+
+        .section-title {
+            margin-top: 0;
+            color: #002752;
+            font-size: 18px;
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card {
+            background: #fdfdfd;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .item-card:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .item-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #004085;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card p {
+            margin: 6px 0;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .card-actions {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .empty-placeholder {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+
+        .modal-close:hover {
+            color: black;
+        }
+
+        .timeline-item {
+            border-left: 3px solid #28a745;
+            padding-left: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            width: 9px;
+            height: 9px;
+            background: #28a745;
+            border-radius: 50%;
+            position: absolute;
+            left: -6px;
+            top: 5px;
+        }
+
+        .timeline-item h4 {
+            margin: 0 0 5px 0;
+            color: #212529;
+            font-size: 15px;
+        }
+
+        .timeline-item .cost-tag {
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .budget-total-box {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-top: 15px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div class="navbar">
+        <div>
+            <h1>TravelManager</h1>
+            <span style="font-size: 14px; opacity: 0.8; margin-left: 10px;">User Travel Portal</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">&larr; Admin Dashboard</a>
+            <span id="navUserBadge" style="display: none; margin-left: 15px; font-weight: 600;"></span>
+            <button id="logoutBtn" onclick="logout()" style="display: none; margin-left: 15px;" class="btn-secondary">Log Out</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- ================= LOGIN SCREEN ================= -->
+        <div id="loginSection" class="auth-card">
+            <h2>User Login</h2>
+            <p>Log in to view your travel groups, trips, and itineraries.</p>
+
+            <div id="loginError" class="alert-error"></div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="usernameInput">Username or Email</label>
+                    <input type="text" id="usernameInput" placeholder="e.g. travel_lover or travel@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="passwordInput">Password</label>
+                    <input type="password" id="passwordInput" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-primary">Sign In to My Portal</button>
+            </form>
+
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #e9ecef;">
+                <label style="font-size: 12px; font-weight: 600; color: #6c757d; display: block; margin-bottom: 6px;">QUICK TEST SELECT (LOADED FROM DB):</label>
+                <select id="quickUserSelect" onchange="autoFillUser()" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px;">
+                    <option value="">-- Choose an existing user --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ================= USER DASHBOARD ================= -->
+        <div id="dashboardSection" style="display: none;">
+            
+            <!-- User Status Header -->
+            <div class="user-header-bar">
+                <div class="user-info-area">
+                    <h2>Welcome, <span id="currentUserName">User</span>!</h2>
+                    <div class="user-badges">
+                        <span class="badge badge-id">User ID: <strong id="currentUserId">0</strong></span>
+                        <span class="badge badge-email" id="currentUserEmail">email@domain.com</span>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="refreshData()" class="btn-secondary" style="margin-right: 8px;">Refresh</button>
+                    <button onclick="logout()" class="btn-secondary">Sign Out</button>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                
+                <!-- LEFT: GROUPS I BELONG TO -->
+                <div class="section-box">
+                    <h3 class="section-title">
+                        <span>My Travel Groups</span>
+                        <span id="groupCountBadge" class="badge badge-id">0</span>
+                    </h3>
+                    <div id="userGroupsList">
+                        <div class="empty-placeholder">Loading your groups...</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: TRIPS I AM GOING TO -->
+                <div class="section-box trips-section">
+                    <h3 class="section-title">
+                        <span>My Upcoming & Planned Trips</span>
+                        <span id="tripCountBadge" class="badge badge-status">0</span>
+                    </h3>
+                    <div id="userTripsList">
+                        <div class="empty-placeholder">Loading your trips...</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================= ITINERARY MODAL ================= -->
+    <div id="itineraryModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('itineraryModal')">&times;</span>
+            <h3 id="modalTripTitle" style="color: #002752; margin-top: 0;">Trip Itinerary</h3>
+            <p id="modalTripSubtitle" style="color: #6c757d; font-size: 14px; margin-bottom: 20px;"></p>
+            <div id="modalItineraryList">Loading schedule...</div>
+            <div id="modalBudgetBox" class="budget-total-box" style="display: none;">
+                Total Estimated Cost: <span id="modalBudgetValue">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= GROUP MEMBERS MODAL ================= -->
+    <div id="membersModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('membersModal')">&times;</span>
+            <h3 id="modalGroupTitle" style="color: #002752; margin-top: 0;">Group Travelers</h3>
+            <ul id="modalMembersList" style="padding-left: 20px; line-height: 1.8;">Loading members...</ul>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // On page load, verify session or load existing users for quick select
+        window.onload = function() {
+            checkCurrentSession();
+            loadAvailableUsers();
+        };
+
+        function checkCurrentSession() {
+            fetch('/api/me')
+                .then(r => {
+                    if (r.ok) return r.json();
+                    throw new Error('Not logged in');
+                })
+                .then(user => {
+                    setLoggedInUser(user);
+                })
+                .catch(() => {
+                    // Try localStorage if session was lost
+                    const saved = localStorage.getItem('travelManagerUser');
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            setLoggedInUser(parsed);
+                            return;
+                        } catch(e) {}
+                    }
+                    showLogin();
+                });
+        }
+
+        function loadAvailableUsers() {
+            fetch('/api/users')
+                .then(r => r.json())
+                .then(users => {
+                    const sel = document.getElementById('quickUserSelect');
+                    sel.innerHTML = '<option value="">-- Choose an existing user --</option>';
+                    users.forEach(u => {
+                        sel.innerHTML += `<option value="${u.username}">User #${u.id}: ${u.username} (${u.email || ''})</option>`;
+                    });
+                })
+                .catch(err => console.log('Could not load users for quick select:', err));
+        }
+
+        function autoFillUser() {
+            const val = document.getElementById('quickUserSelect').value;
+            if (val) {
+                document.getElementById('usernameInput').value = val;
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const errBox = document.getElementById('loginError');
+            errBox.style.display = 'none';
+
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+
+            const fd = new URLSearchParams();
+            fd.append('username', username);
+            fd.append('password', password);
+
+            fetch('/api/login', {
+                method: 'POST',
+                body: fd
+            })
+            .then(async r => {
+                if (r.ok) {
+                    return r.json();
+                } else {
+                    const msg = await r.text();
+                    throw new Error(msg || 'Invalid login credentials');
+                }
+            })
+            .then(user => {
+                localStorage.setItem('travelManagerUser', JSON.stringify(user));
+                setLoggedInUser(user);
+            })
+            .catch(err => {
+                errBox.innerText = err.message;
+                errBox.style.display = 'block';
+            });
+        }
+
+        function setLoggedInUser(user) {
+            currentUser = user;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+
+            document.getElementById('navUserBadge').innerText = user.username;
+            document.getElementById('navUserBadge').style.display = 'inline';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+
+            document.getElementById('currentUserName').innerText = user.username;
+            document.getElementById('currentUserId').innerText = user.id;
+            document.getElementById('currentUserEmail').innerText = user.email || 'No email registered';
+
+            refreshData();
+        }
+
+        function showLogin() {
+            currentUser = null;
+            localStorage.removeItem('travelManagerUser');
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('navUserBadge').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+
+        function logout() {
+            fetch('/api/logout', { method: 'POST' }).finally(() => {
+                showLogin();
+            });
+        }
+
+        function refreshData() {
+            if (!currentUser) return;
+            loadUserGroups(currentUser.id);
+            loadUserTrips(currentUser.id);
+        }
+
+        // --- LOAD USER GROUPS ---
+        function loadUserGroups(userId) {
+            const container = document.getElementById('userGroupsList');
+            container.innerHTML = '<div class="empty-placeholder">Loading your groups...</div>';
+
+            fetch(`/api/users/${userId}/groups`)
+                .then(r => r.json())
+                .then(groups => {
+                    document.getElementById('groupCountBadge').innerText = groups.length;
+                    if (groups.length === 0) {
+                        container.innerHTML = '<div class="empty-placeholder">You are not a member of any travel groups yet.<br><small>Ask a group creator to add your User ID or create a group in the Admin Dashboard.</small></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    groups.forEach(g => {
+                        const isCreator = (g.role === 'CREATOR');
+                        const roleClass = isCreator ? 'badge-role-creator' : 'badge-role-member';
+                        const roleText = isCreator ? '👑 Group Creator' : '👤 Member';
+
+                        html += `
+                            <div class="item-card">
+                                <h3>
+                                    <span>${escapeHtml(g.name)}</span>
+                                    <span class="badge ${roleClass}">${roleText}</span>
+                                </h3>
+                                <p><strong>Description:</strong> ${escapeHtml(g.description || 'No description provided.')}</p>
+                                <p style="font-size: 12px; color: #6c757d;">
+                                    Group ID: #${g.groupId} &bull; Created by: <strong>${escapeHtml(g.creatorUsername || 'User #' + g.createdBy)}</strong>
+                                </p>
+                                <div class="card-actions">
+                                    <span style="font-size: 12px; color: #888;">Joined: ${formatDate(g.joinedAt)}</span>
+                                    <button class="btn-secondary" onclick="viewGroupMembers(${g.groupId}, '${escapeHtml(g.name)}')">View Members</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    container.innerHTML = `<div class="empty-placeholder" style="color:red;">Error loading groups: ${err.message}</div>`;
+                });
+        }
+
+        // --- LOAD USER TRIPS ---
+        function loadUserTrips(userId) {
+            const container = document.getElementById('userTripsList');
+            container.innerHTML = '<div class="empty-placeholder">Loading your trips...</div>';
+
+            fetch(`/api/users/${userId}/trips`)
+                .then(r => r.json())
+                .then(trips => {
+                    document.getElementById('tripCountBadge').innerText = trips.length;
+                    if (trips.length === 0) {
+                        container.innerHTML = '<div class="empty-placeholder">No trips planned for your groups yet.<br><small>Plan trips for your travel groups in the Admin Dashboard!</small></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    trips.forEach(t => {
+                        html += `
+                            <div class="item-card">
+                                <h3>
+                                    <span>📍 ${escapeHtml(t.destination)} - ${escapeHtml(t.title)}</span>
+                                    <span class="badge badge-status">${escapeHtml(t.status || 'PLANNED')}</span>
+                                </h3>
+                                <p><strong>Group:</strong> ${escapeHtml(t.groupName)} (Group #${t.groupId})</p>
+                                <p><strong>Dates:</strong> 🗓️ ${t.startDate} &rarr; ${t.endDate}</p>
+                                <div class="card-actions">
+                                    <span style="font-size: 12px; color: #6c757d;">Role in Group: <strong>${t.userRole}</strong></span>
+                                    <button class="btn-view" onclick="viewTripDetails(${t.tripId}, '${escapeHtml(t.title)}', '${escapeHtml(t.destination)}')">
+                                        View Itinerary & Cost &rarr;
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    container.innerHTML = `<div class="empty-placeholder" style="color:red;">Error loading trips: ${err.message}</div>`;
+                });
+        }
+
+        // --- VIEW TRIP ITINERARIES ---
+        function viewTripDetails(tripId, title, destination) {
+            document.getElementById('modalTripTitle').innerText = `${title} (${destination})`;
+            document.getElementById('modalTripSubtitle').innerText = `Trip ID: #${tripId} - Schedule & Expenses`;
+            const list = document.getElementById('modalItineraryList');
+            const budgetBox = document.getElementById('modalBudgetBox');
+            list.innerHTML = 'Loading itinerary schedule...';
+            budgetBox.style.display = 'none';
+
+            fetch(`/api/itineraries?trip_id=${tripId}`)
+                .then(r => r.json())
+                .then(events => {
+                    if (events.length === 0) {
+                        list.innerHTML = '<p style="color: #6c757d; font-style: italic;">No itinerary events or activities scheduled for this trip yet.</p>';
+                        return;
+                    }
+
+                    let totalCost = 0;
+                    let html = '';
+                    events.forEach(item => {
+                        const cost = parseFloat(item.cost) || 0;
+                        totalCost += cost;
+                        html += `
+                            <div class="timeline-item">
+                                <h4>${escapeHtml(item.title)}</h4>
+                                <p style="margin: 3px 0; font-size: 13px; color: #555;">📍 ${escapeHtml(item.location || 'Location TBD')}</p>
+                                <p style="margin: 3px 0; font-size: 13px;" class="cost-tag">Cost: $${cost.toFixed(2)}</p>
+                            </div>
+                        `;
+                    });
+                    list.innerHTML = html;
+                    document.getElementById('modalBudgetValue').innerText = '$' + totalCost.toFixed(2);
+                    budgetBox.style.display = 'block';
+                })
+                .catch(err => {
+                    list.innerHTML = `<p style="color:red;">Failed to load itinerary: ${err.message}</p>`;
+                });
+
+            openModal('itineraryModal');
+        }
+
+        // --- VIEW GROUP MEMBERS ---
+        function viewGroupMembers(groupId, groupName) {
+            document.getElementById('modalGroupTitle').innerText = `Travelers in "${groupName}"`;
+            const list = document.getElementById('modalMembersList');
+            list.innerHTML = '<li>Loading members...</li>';
+
+            fetch(`/api/groups/${groupId}/members`)
+                .then(r => r.json())
+                .then(members => {
+                    if (members.length === 0) {
+                        list.innerHTML = '<li>No members registered in this group.</li>';
+                        return;
+                    }
+                    let html = '';
+                    members.forEach(m => {
+                        const isMe = (currentUser && m.userId === currentUser.id);
+                        html += `<li><strong>${escapeHtml(m.username)}</strong> (ID: ${m.userId}) &bull; <span class="badge ${m.role === 'CREATOR' ? 'badge-role-creator' : 'badge-role-member'}">${m.role}</span> ${isMe ? '<em>(You)</em>' : ''}</li>`;
+                    });
+                    list.innerHTML = html;
+                })
+                .catch(err => {
+                    list.innerHTML = `<li style="color:red;">Error: ${err.message}</li>`;
+                });
+
+            openModal('membersModal');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function formatDate(dt) {
+            if (!dt) return 'Recently';
+            try {
+                return new Date(dt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            } catch(e) {
+                return dt;
+            }
+        }
+    </script>
+</body>
+</html>
