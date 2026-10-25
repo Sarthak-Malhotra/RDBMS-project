@@ -25,12 +25,6 @@
                     <button type="submit">Log In</button>
                 </form>
                 <div id="loginMsg" style="color: red; margin-top: 10px; display: none;"></div>
-                <br>
-                <hr>
-                <label>Quick Select Test User:</label><br>
-                <select id="quickUserSelect" onchange="autoFillUser()">
-                    <option value="">-- Choose User --</option>
-                </select>
             </div>
 
             <div class="form-box" id="userProfileBox" style="display: none;">
@@ -81,7 +75,6 @@
         let currentUser = null;
 
         window.onload = function() {
-            loadAvailableUsers();
             checkSession();
         };
 
@@ -104,27 +97,6 @@
                     }
                     showLoggedOut();
                 });
-        }
-
-        function loadAvailableUsers() {
-            fetch('/api/users')
-                .then(r => r.json())
-                .then(users => {
-                    const sel = document.getElementById('quickUserSelect');
-                    sel.innerHTML = '<option value="">-- Choose User --</option>';
-                    users.forEach(u => {
-                        sel.innerHTML += `<option value="${u.username}">ID: ${u.id} | ${u.username}</option>`;
-                    });
-                })
-                .catch(err => console.log('Could not load users:', err));
-        }
-
-        function autoFillUser() {
-            const val = document.getElementById('quickUserSelect').value;
-            if (val) {
-                document.getElementById('login_user').value = val;
-                document.getElementById('login_pass').focus();
-            }
         }
 
         document.getElementById('loginForm').onsubmit = function(e) {
